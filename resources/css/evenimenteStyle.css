@@ -253,13 +253,17 @@
 }
 
 .btn-delete {
-    background-color: white;
+    background-color: #95a5a6;
     color: red;
     padding: 8px 15px;
     border-radius: 5px;
     font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
     border: none;
     font-size: 0.9rem;
+    transition: background-color 0.3s;
 }
 
 .show-past-events {

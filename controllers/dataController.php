@@ -6,9 +6,124 @@ require_once '../models/EventModel.php';
 $userModel = new UserModel();
 $eventModel = new EventModel();
 
+// Verifică dacă utilizatorul este admin
 if (!isset($_SESSION['user_id']) || !$userModel->isAdmin($_SESSION['user_id'])) {
     header('HTTP/1.0 403 Forbidden');
-    exit('Access denied');
+    echo json_encode(['status' => 'error', 'message' => 'Access denied']);
+    exit();
+}
+
+// Handler pentru import
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
+    $file = $_FILES['file'];
+    
+    if ($file['error'] === UPLOAD_ERR_OK) {
+        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        
+        if ($extension === 'csv') {
+            $handle = fopen($file['tmp_name'], 'r');
+            $header = fgetcsv($handle); // Skip header row
+            
+            $imported = 0;
+            while (($data = fgetcsv($handle)) !== FALSE) {
+                // Verificăm dacă avem toate datele necesare
+                if (count($data) < 5) {
+                    continue; // Skip invalid rows
+                }
+
+                $eventData = [
+                    'event_name' => $data[1] ?? '',
+                    'location' => $data[2] ?? '',
+                    'description' => $data[3] ?? '',
+                    'event_date' => $data[4] ?? date('Y-m-d H:i:s'),
+                    'location_lat' => $data[5] ?? 0,
+                    'location_lon' => $data[6] ?? 0,
+                    'max_participants' => intval($data[7] ?? 0),
+                    'created_by' => $_SESSION['user_id'], // Folosim ID-ul utilizatorului curent
+                    'event_type' => $data[14] ?? 'general',
+                    'min_events_participated' => intval($data[13] ?? 0),
+                    'duration' => intval($data[20] ?? 1)
+                ];
+
+                try {
+                    if ($eventModel->createEventComplete(
+                        $eventData['event_name'],
+                        $eventData['location'],
+                        $eventData['description'],
+                        $eventData['event_date'],
+                        $eventData['location_lat'],
+                        $eventData['location_lon'],
+                        $eventData['max_participants'],
+                        $eventData['created_by'],
+                        $eventData['duration'],
+                        $eventData['min_events_participated']
+                    )) {
+                        $imported++;
+                    }
+                } catch (Exception $e) {
+                    error_log("Error importing event: " . $e->getMessage());
+                    continue;
+                }
+            }
+            
+            fclose($handle);
+            echo json_encode([
+                'status' => 'success', 
+                'message' => "Successfully imported $imported events"
+            ]);
+        } 
+        else if ($extension === 'json') {
+            $jsonData = file_get_contents($file['tmp_name']);
+            $events = json_decode($jsonData, true);
+            
+            if ($events && is_array($events)) {
+                $imported = 0;
+                foreach ($events as $event) {
+                    try {
+                        if ($eventModel->createEventComplete(
+                            $event['event_name'],
+                            $event['location'],
+                            $event['description'],
+                            $event['event_date'],
+                            $event['location_lat'],
+                            $event['location_lon'],
+                            $event['max_participants'],
+                            $_SESSION['user_id'],
+                            $event['duration'] ?? 1,
+                            $event['min_events_participated'] ?? 0
+                        )) {
+                            $imported++;
+                        }
+                    } catch (Exception $e) {
+                        error_log("Error importing event from JSON: " . $e->getMessage());
+                        continue;
+                    }
+                }
+                
+                echo json_encode([
+                    'status' => 'success', 
+                    'message' => "Successfully imported $imported events"
+                ]);
+            } else {
+                echo json_encode([
+                    'status' => 'error', 
+                    'message' => 'Invalid JSON format'
+                ]);
+            }
+        } 
+        else {
+            echo json_encode([
+                'status' => 'error', 
+                'message' => 'Invalid file type. Only CSV and JSON are supported.'
+            ]);
+        }
+    } else {
+        echo json_encode([
+            'status' => 'error', 
+            'message' => 'File upload failed: ' . $file['error']
+        ]);
+    }
+    exit();
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
@@ -81,73 +196,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
             fclose($output);
         }
         exit();
-    }
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
-    $file = $_FILES['file'];
-    
-    if ($file['error'] === UPLOAD_ERR_OK) {
-        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-        
-        if ($extension === 'csv') {
-            $handle = fopen($file['tmp_name'], 'r');
-            $header = fgetcsv($handle);
-            
-            $imported = 0;
-            while (($data = fgetcsv($handle)) !== FALSE) {
-                $eventData = [
-                    'event_name' => $data[1],
-                    'location' => $data[2],
-                    'description' => $data[3],
-                    'event_date' => $data[4],
-                    'location_lat' => $data[5],
-                    'location_lon' => $data[6],
-                    'max_participants' => $data[7],
-                    'created_by' => $data[8],
-                    'status' => $data[9],
-                    'min_age' => $data[11],
-                    'required_gender' => $data[12],
-                    'min_events_participated' => $data[13],
-                    'event_type' => $data[14],
-                    'event_description' => $data[15],
-                    'lat' => $data[16],
-                    'lng' => $data[17],
-                    'participation_policy' => $data[18],
-                    'min_participations' => $data[19],
-                    'duration' => $data[20]
-                ];
-                
-                if ($eventModel->createEventComplete($eventData)) {
-                    $imported++;
-                }
-            }
-            
-            fclose($handle);
-            echo json_encode(['status' => 'success', 'message' => "Imported $imported events"]);
-        } 
-        else if ($extension === 'json') {
-            // Import from JSON
-            $jsonData = file_get_contents($file['tmp_name']);
-            $events = json_decode($jsonData, true);
-            
-            if ($events) {
-                $imported = 0;
-                foreach ($events as $event) {
-                    if ($eventModel->createEvent($event)) {
-                        $imported++;
-                    }
-                }
-                
-                echo json_encode(['status' => 'success', 'message' => "Imported $imported events"]);
-            } else {
-                echo json_encode(['status' => 'error', 'message' => 'Invalid JSON']);
-            }
-        } 
-        else {
-            echo json_encode(['status' => 'error', 'message' => 'Invalid file type']);
-        }
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Upload failed']);
     }
 }

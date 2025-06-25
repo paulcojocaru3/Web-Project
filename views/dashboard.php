@@ -10,7 +10,7 @@ require_once '../models/UserModel.php';
 $userModel = new UserModel();
 $user = $userModel->getUserById($_SESSION['user_id']);
 $username = $user['username'];
-$isAdmin = $userModel->isAdmin($_SESSION['user_id']); // Add this line
+$isAdmin = $userModel->isAdmin($_SESSION['user_id']);
 ?>
 
 <!DOCTYPE html>
@@ -80,33 +80,7 @@ $isAdmin = $userModel->isAdmin($_SESSION['user_id']); // Add this line
     </div>
 
     <?php if ($isAdmin): ?>
-    <script>
-        document.getElementById('importFile').addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('action', 'import');
-
-            try {
-                const response = await fetch('../controllers/dataController.php', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const result = await response.json();
-                alert(result.message);
-                
-                if (result.status === 'success') {
-                    location.reload();
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('A apărut o eroare la import');
-            }
-        });
-    </script>
+    <script src="../resources/js/dataImportExport.js"></script>
     <?php endif; ?>
 </body>
 </html>
