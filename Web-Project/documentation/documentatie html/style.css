@@ -1,0 +1,89 @@
+/* Stiluri simple pentru documentația Iași Joacă */
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0 auto;
+    padding: 20px;
+    max-width: 900px;
+    color: #333;
+}
+
+header {
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+h1 {
+    color: #333;
+    font-size: 24px;
+}
+
+h2 {
+    color: #444;
+    font-size: 20px;
+    margin-top: 30px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+h3 {
+    color: #555;
+    font-size: 18px;
+    margin-top: 20px;
+}
+
+h4 {
+    color: #666;
+    font-size: 16px;
+    margin-top: 15px;
+}
+
+p, li {
+    font-size: 14px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 20px 0;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+.metadata {
+    color: #777;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.requirement {
+    background-color: #f8f9fa;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-left: 2px solid #ddd;
+}
+
+.subsection {
+    margin-left: 15px;
+}
+
+footer {
+    margin-top: 40px;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+    text-align: center;
+    font-size: 12px;
+    color: #777;
+}

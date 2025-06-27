@@ -1,0 +1,359 @@
+.event-container {
+    max-width: 1200px;
+    margin: 40px auto 30px;
+    padding: 20px;
+}
+
+.event-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    background-color: #34495e;
+    padding: 20px;
+    border-radius: 8px;
+    color: white;
+}
+
+.event-header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+.event-badge {
+    background-color: #3498db;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.event-content {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 25px;
+}
+
+.event-details-section {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.event-main-details {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.detail-row {
+    display: flex;
+    align-items: center;
+}
+
+.detail-icon {
+    font-size: 1.5rem;
+    margin-right: 15px;
+    color: #34495e;
+    width: 30px;
+    text-align: center;
+}
+
+.detail-label {
+    font-weight: bold;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.detail-value {
+    color: #333;
+    font-size: 1.1rem;
+    margin-top: 3px;
+}
+
+.event-description {
+    margin-bottom: 25px;
+}
+
+.event-description h3,
+.event-location h3 {
+    color: #34495e;
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 5px;
+}
+
+.event-description p {
+    line-height: 1.6;
+    color: #333;
+}
+
+.event-map {
+    height: 300px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+}
+
+.event-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+.btn-register,
+.btn-unregister,
+.btn-back {
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+}
+
+.btn-register {
+    background-color: #3498db;
+    color: white;
+}
+
+.btn-register:hover {
+    background-color: #2980b9;
+}
+
+.btn-unregister {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.btn-unregister:hover {
+    background-color: #c0392b;
+}
+
+.btn-back {
+    background-color: #7f8c8d;
+    color: white;
+}
+
+.btn-back:hover {
+    background-color: #6c7a7a;
+}
+
+.event-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.participants-section,
+.chat-section {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.participants-section h3,
+.chat-section h3 {
+    color: #34495e;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 5px;
+}
+
+.participants-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.participants-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.participants-list li:last-child {
+    border-bottom: none;
+}
+
+.participant-name {
+    font-weight: bold;
+    color: #333;
+}
+
+.participant-date {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.no-participants {
+    color: #7f8c8d;
+    font-style: italic;
+    text-align: center;
+}
+
+.chat-messages {
+    height: 300px;
+    overflow-y: auto;
+    border: 1px solid #f0f0f0;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 15px;
+    background-color: #f9f9f9;
+}
+
+.chat-message {
+    margin-bottom: 15px;
+    background-color: #e8f4fd;
+    border-radius: 10px;
+    padding: 10px;
+    max-width: 85%;
+}
+
+.own-message {
+    background-color: #dcf8c6;
+    margin-left: auto;
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 0.8rem;
+}
+
+.message-author {
+    font-weight: bold;
+    color: #34495e;
+}
+
+.message-time {
+    color: #7f8c8d;
+}
+
+.message-content {
+    color: #333;
+    word-break: break-word;
+    line-height: 1.4;
+}
+
+.no-messages {
+    color: #7f8c8d;
+    font-style: italic;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.chat-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.chat-form textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    resize: vertical;
+    height: 80px;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+.chat-form button {
+    align-self: flex-end;
+    background-color: #3498db;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.chat-form button:hover {
+    background-color: #2980b9;
+}
+
+.chat-login-message,
+.chat-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+/* Stiluri adăugate din view_event.php */
+.event-past-badge {
+    display: inline-block;
+    background-color: #e74c3c;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.9rem;
+    margin-left: 10px;
+    font-weight: bold;
+}
+
+.event-full-badge {
+    display: inline-block;
+    background-color: #f39c12;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.9rem;
+    margin-left: 10px;
+    font-weight: bold;
+}
+
+.btn-past, .btn-full {
+    background-color: #95a5a6;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: not-allowed;
+    border: none;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+}
+
+@media (max-width: 900px) {
+    .event-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .event-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .event-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .btn-register,
+    .btn-unregister,
+    .btn-back {
+        width: 100%;
+        text-align: center;
+    }
+}
