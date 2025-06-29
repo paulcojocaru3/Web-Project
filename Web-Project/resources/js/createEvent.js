@@ -7,7 +7,9 @@ async function createEvent(eventData) {
         }
         errorDiv.style.display = 'none';
         
-        const response = await fetch('/Web-Project/controllers/createEventController.php', {
+        
+        // Folosește serviciul web în loc de controller-ul direct
+        const response = await fetch('/services/controllers/eventsController.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -28,6 +30,9 @@ async function createEvent(eventData) {
 
         if (data.status === 'success') {
             window.location.href = '../views/evenimente.php';
+        } else {
+            errorDiv.textContent = data.message || 'A aparut o eroare';
+            errorDiv.style.display = 'block';
         }
     } catch (error) {
         console.error('Caught error:', error);
@@ -44,6 +49,7 @@ document.getElementById('eventForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const formData = {
+         action: 'create',
         event_name: document.getElementById('event_name').value,
         location: document.getElementById('location').value,
         description: document.getElementById('description').value,

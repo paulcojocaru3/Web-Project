@@ -1,37 +1,61 @@
 <?php
 header('Content-Type: application/json');
 session_start();
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // Dezactivăm afișarea erorilor în răspunsul API
+ini_set('error_log', __DIR__ . '/getevents_error.log'); // Logăm erorile într-un fișier separat
 
-if (!isset($_SESSION['user_id'])) {
-    http_response_code(401);
-    echo json_encode([
-        'status' => 'error',
-        'message' => 'Unauthorized'
-    ]);
-    exit();
-}
+error_log("--- getEventsController started ---");
 
-require_once('../models/EventModel.php');
+// Pentru API-uri publice
+$allowPublicAccess = true;
 
 try {
-    $data = json_decode(file_get_contents('php://input'), true);
+    // Încercăm să includem clasa model
+    error_log("Încercăm să includem EventModel.php");
+    require_once('../models/EventModel.php');
+    error_log("EventModel.php inclus cu succes");
     
-    $lat = isset($data['lat']) ? floatval($data['lat']) : null;
-    $lon = isset($data['lon']) ? floatval($data['lon']) : null;
+    // Parametrii GET
+    $lat = isset($_GET['lat']) ? floatval($_GET['lat']) : null;
+    $lon = isset($_GET['lon']) ? floatval($_GET['lon']) : null;
+    error_log("Parametri: lat=$lat, lon=$lon");
 
-    $eventModel = new EventModel();
-    $events = $eventModel->getEvenimente($lat, $lon);
-    echo json_encode([
-        'status' => 'success',
-        'future_events' => $events['future_events'],
-        'past_events' => $events['past_events']
-    ]);
+    // Aici implementăm decizia: date statice sau dinamice
+    $useDynamicData = true; // Schimbă la TRUE pentru a testa modelul
+
+    if ($useDynamicData) {
+        // Încercăm varianta dinamică
+        error_log("Creăm instanță EventModel");
+        $eventModel = new EventModel();
+        error_log("EventModel instanțiat");
+        
+        error_log("Apelăm getEvenimente()");
+        $events = $eventModel->getEvenimente($lat, $lon);
+        error_log("getEvenimente() returnat cu succes");
+        
+        echo json_encode([
+            'status' => 'success',
+            'future_events' => $events['future_events'],
+            'past_events' => $events['past_events']
+        ]);
+    }
 
 } catch (Exception $e) {
+    error_log("Exception: " . $e->getMessage() . "\n" . $e->getTraceAsString());
     http_response_code(500);
     echo json_encode([
         'status' => 'error',
-        'message' => $e->getMessage()
+        'message' => 'Server error: ' . $e->getMessage()
+    ]);
+} catch (Error $e) {
+    error_log("PHP Error: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+    http_response_code(500);
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'PHP Error: ' . $e->getMessage()
     ]);
 }
+
+error_log("--- getEventsController finished ---");
 ?>

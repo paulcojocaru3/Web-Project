@@ -18,6 +18,7 @@ $location_name = isset($_GET['location']) ? htmlspecialchars($_GET['location']) 
     <title>Evenimente - Iasi Joaca</title>
     <link href="../resources/css/evenimenteStyle.css" rel="stylesheet">
     <link href="../resources/css/styleStartPage.css" rel="stylesheet">  
+    <meta name="user-id" content="<?php echo isset($_SESSION['user_id']) ? $_SESSION['user_id'] : ''; ?>">
 </head>
 <body>
     <header>

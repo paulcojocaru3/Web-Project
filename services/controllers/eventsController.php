@@ -1,73 +1,149 @@
 <?php
-// filepath: c:\xampp\htdocs\services\api\events.php
-require_once '../models/eventService.php';
-require_once '../models/ServiceResponse.php';
+session_start();
 
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+require_once __DIR__ . '/../models/eventService.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
+// Functie pentru logare
+function logDebug($message, $data = null) {
+    error_log(sprintf("[DEBUG] %s: %s", $message, 
+        $data ? json_encode($data) : 'null'));
 }
 
-$method = $_SERVER['REQUEST_METHOD'];
-$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$segments = explode('/', trim($path, '/'));
+// Configurare headere
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
 
-$eventService = new EventService();
+// Functie pentru trimiterea raspunsurilor JSON
+function sendJsonResponse($data, $statusCode = 200) {
+    http_response_code($statusCode);
+    echo json_encode($data);
+}
 
-switch($method) {
-    case 'GET':
-        if (isset($_GET['action']) && $_GET['action'] === 'check') {
-            // GET /api/events?action=check&lat=47.151&lon=27.587
-            $lat = $_GET['lat'] ?? null;
-            $lon = $_GET['lon'] ?? null;
-            
-            if ($lat && $lon) {
-                $result = $eventService->checkEventsAtLocation($lat, $lon);
-                echo json_encode($result);
-            } else {
-               // echo ServiceResponse::error('Latitude and longitude required', 400);
-            }
-        } else {
-            // GET /api/events
-            $lat = $_GET['lat'] ?? null;
-            $lon = $_GET['lon'] ?? null;
-            $result = $eventService->getAllEvents($lat, $lon);
-            echo json_encode($result);
-        }
-        break;
+try {
+    $eventService = new EventService();
+
+    // Procesare cereri GET
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        $lat = $_GET['lat'] ?? null;
+        $lon = $_GET['lon'] ?? null;
+        $userId = $_GET['user_id'] ?? null;
         
-    case 'POST':
+        // Verificare evenimente in locatie
+        if (isset($_GET['action']) && $_GET['action'] === 'check') {
+            if (!$lat || !$lon) {
+                sendJsonResponse([
+                    'status' => 'error',
+                    'message' => 'fara coordonate'
+                ], 400);
+                exit;
+            }
+            
+            $result = $eventService->checkEventsAtLocation($lat, $lon);
+            sendJsonResponse([
+                'status' => 'success',
+                'data' => $result
+            ]);
+        } 
+        // Obtine toate evenimentele
+        else {
+            $result = $eventService->getAllEvents($lat, $lon, $userId);
+            sendJsonResponse([
+                'status' => 'success',
+                'data' => $result
+            ]);
+        }
+    } 
+    // Procesare cereri POST
+    else if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data = json_decode(file_get_contents('php://input'), true);
         
-        if (isset($data['action'])) {
-            switch($data['action']) {
-                case 'join':
-                    // POST /api/events {"action": "join", "event_id": 123, "user_id": 456}
-                    $result = $eventService->joinEvent($data['event_id'], $data['user_id']);
-                    echo json_encode($result);
-                    break;
-                    
-                case 'details':
-                    // POST /api/events {"action": "details", "event_id": 123, "user_id": 456}
-                    $result = $eventService->getEventDetails($data['event_id'], $data['user_id']);
-                    echo json_encode($result);
-                    break;
-                    
-                default:
-                   // echo ServiceResponse::error('Unknown action', 400);
-            }
-        } else {
-            // POST /api/events - create new event
-            $result = $eventService->createEvent($data);
-            echo json_encode($result);
+        if (!$data) {
+            sendJsonResponse([
+                'status' => 'error',
+                'message' => 'json invalid'
+            ], 400);
+            exit;
         }
-        break;
         
-    default:
-       // echo ServiceResponse::error('Method not allowed', 405);
+        // Inscriere la eveniment
+        if (isset($data['action']) && $data['action'] === 'join') {
+            if (empty($data['event_id']) || empty($data['user_id'])) {
+                sendJsonResponse([
+                    'status' => 'error',
+                    'message' => 'lipsesc fields'
+                ], 400);
+                exit;
+            }
+            
+            $result = $eventService->joinEvent($data['event_id'], $data['user_id']);
+            sendJsonResponse($result);
+        } 
+        // Creare eveniment
+        else if (isset($data['action']) && $data['action'] === 'create') {
+            if (empty($data['event_name']) || empty($data['event_date'])) {
+                sendJsonResponse([
+                    'status' => 'error',
+                    'message' => 'lipsesc fields'
+                ], 400);
+                exit;
+            }
+            
+            $result = $eventService->createEvent($data);
+            sendJsonResponse($result, $result['status'] === 'success' ? 201 : 400);
+        }
+        // Stergere eveniment (prin POST)
+        else if (isset($data['action']) && $data['action'] === 'delete') {
+            if (empty($data['event_id'])) {
+                sendJsonResponse([
+                    'status' => 'error',
+                    'message' => 'event_id required'
+                ], 400);
+                exit;
+            }
+            
+            $result = $eventService->deleteEvent($data['event_id']);
+            sendJsonResponse($result);
+        }
+        // Actiune necunoscuta
+        else {
+            sendJsonResponse([
+                'status' => 'error',
+                'message' => 'Invalid action'
+            ], 400);
+        }
+    } 
+    // Procesare cereri DELETE
+    else if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+        $data = json_decode(file_get_contents('php://input'), true);
+        $eventId = $data['event_id'] ?? null;
+        
+        if (!$eventId) {
+            sendJsonResponse([
+                'status' => 'error',
+                'message' => 'event_id required'
+            ], 400);
+            exit;
+        }
+        
+        $result = $eventService->deleteEvent($eventId);
+        sendJsonResponse($result);
+    } 
+    // OPTIONS pentru CORS
+    else if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        sendJsonResponse(['status' => 'success']);
+    }
+    // Metoda nepermisa
+    else {
+        sendJsonResponse([
+            'status' => 'error',
+            'message' => 'restricted method'
+        ], 405);
+    }
+} catch (Exception $e) {
+    sendJsonResponse([
+        'status' => 'error',
+        'message' => 'Server error: ' . $e->getMessage()
+    ], 500);
 }

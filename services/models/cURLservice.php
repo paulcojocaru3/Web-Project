@@ -1,68 +1,74 @@
 <?php
-// filepath: c:\xampp\htdocs\services\models\CurlClient.php
+// Clasa pentru comunicarea cu API-ul aplicatiei principale
 class CurlClient {
     private $baseUrl;
-    private $timeout;
     
-    public function __construct($baseUrl = 'http://localhost/services', $timeout = 30) {
+    public function __construct($baseUrl) {
         $this->baseUrl = rtrim($baseUrl, '/');
-        $this->timeout = $timeout;
     }
     
-    public function get($endpoint, $headers = []) {
-        return $this->makeRequest('GET', $endpoint, null, $headers);
+    // Metoda GET cu parametri optionali
+    public function get($endpoint, $params = []) {
+        if (!empty($params)) {
+            $endpoint .= '?' . http_build_query($params);
+        }
+        return $this->request('GET', $endpoint);
     }
     
-    public function post($endpoint, $data = null, $headers = []) {
-        return $this->makeRequest('POST', $endpoint, $data, $headers);
+    // Metoda POST cu date
+    public function post($endpoint, $data = null) {
+        return $this->request('POST', $endpoint, $data);
     }
     
-    public function put($endpoint, $data = null, $headers = []) {
-        return $this->makeRequest('PUT', $endpoint, $data, $headers);
+    // Metoda DELETE pentru stergerea resurselor
+    public function delete($endpoint, $data = null) {
+        return $this->request('DELETE', $endpoint, $data);
     }
     
-    public function delete($endpoint, $headers = []) {
-        return $this->makeRequest('DELETE', $endpoint, null, $headers);
-    }
-    
-    private function makeRequest($method, $endpoint, $data = null, $headers = []) {
+    // Metoda interna care proceseaza toate tipurile de cereri
+    private function request($method, $endpoint, $data = null) {
         $url = $this->baseUrl . '/' . ltrim($endpoint, '/');
-        
         $ch = curl_init();
         
-        // Configurări cURL de bază
-        curl_setopt_array($ch, [
+        $options = [
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => $this->timeout,
             CURLOPT_CUSTOMREQUEST => $method,
-            CURLOPT_HTTPHEADER => array_merge([
-                'Content-Type: application/json',
-                'Accept: application/json'
-            ], $headers),
-            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_HTTPHEADER => [
+                'Accept: application/json',
+                'Content-Type: application/json'
+            ],
+            CURLOPT_HEADER => true,
+            CURLOPT_TIMEOUT => 10,
             CURLOPT_FOLLOWLOCATION => true
-        ]);
+        ];
         
-        // Adaugă date pentru POST/PUT
-        if ($data !== null && in_array($method, ['POST', 'PUT'])) {
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        // Adauga date in corpul cererii daca exista
+        if ($data !== null) {
+            $jsonData = json_encode($data);
+            $options[CURLOPT_POSTFIELDS] = $jsonData;
         }
         
+        curl_setopt_array($ch, $options);
+        
         $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+        $body = substr($response, $headerSize);
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error = curl_error($ch);
         
         curl_close($ch);
         
         if ($error) {
-            throw new Exception("cURL Error: $error");
+            return [
+                'status_code' => 500,
+                'data' => ['error' => $error]
+            ];
         }
         
         return [
-            'status_code' => $httpCode,
-            'body' => $response,
-            'data' => json_decode($response, true)
+            'status_code' => $statusCode,
+            'data' => json_decode($body, true)
         ];
     }
 }

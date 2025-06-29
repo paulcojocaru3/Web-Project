@@ -17,7 +17,29 @@ $method = $_SERVER['REQUEST_METHOD'];
 $userService = new UserService();
 
 switch($method) {
+    case 'GET':
+        // Adaugă suport pentru metoda GET
+        if (isset($_GET['action']) && $_GET['action'] === 'check_admin') {
+            $userId = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
+            if ($userId > 0) {
+                $result = $userService->checkAdminStatus($userId);
+                echo json_encode($result);
+            } else {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'User ID is required'
+                ]);
+            }
+        } else {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Invalid action'
+            ]);
+        }
+        break;
+
     case 'POST':
+        // Păstrează codul POST existent
         $data = json_decode(file_get_contents('php://input'), true);
         
         if (isset($data['action'])) {
@@ -41,19 +63,28 @@ switch($method) {
                     break;
                     
                 case 'check_admin':
-                    // POST /api/users {"action": "check_admin", "user_id": 123}
                     $result = $userService->checkAdminStatus($data['user_id']);
                     echo json_encode($result);
                     break;
-                    
+                
                 default:
-                  //  echo ServiceResponse::error('Unknown action', 400);
+                    echo json_encode([
+                        'status' => 'error',
+                        'message' => 'Unknown action'
+                    ]);
             }
         } else {
-          //  echo ServiceResponse::error('Action required', 400);
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Action required'
+            ]);
         }
         break;
         
     default:
-      //  echo ServiceResponse::error('Method not allowed', 405);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Method not allowed'
+        ]);
 }
+?>

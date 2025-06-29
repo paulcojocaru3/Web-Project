@@ -5,16 +5,21 @@ function redirectCreateEvent(lat, lon, fieldName) {
 
 async function checkForEvents(lat, lon) {
     try {
-        const response = await fetch(`/Web-Project/controllers/checkEventsController.php?lat=${lat}&lon=${lon}`);
+        // Înlocuiește calea directă cu URL-ul către serviciul web
+        const response = await fetch(`/services/controllers/eventsController.php?action=check&lat=${lat}&lon=${lon}`);
+        
         if(!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
         const data = await response.json();
-
-        if (data.success !== undefined) {
-            return data.success ? data.marker : 'gray'; 
+        console.log('Service response:', data); // Debug
+        
+        // Adaptare pentru structura de răspuns a serviciului web
+        if (data.status === 'success') {
+            return data.data?.marker || 'gray'; 
         } else {
-            console.error("Unexpected response format:", data);
+            console.error("API error:", data.message);
             return 'gray';
         }
     } catch (error) {
